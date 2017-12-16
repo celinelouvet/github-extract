@@ -1,0 +1,55 @@
+name:                github-extract
+version:             0.1.0.0
+github:              celinelouvet/github-extract
+license:             BSD3
+author:              Céline Louvet
+maintainer:          celine.louvet@gmail.com
+copyright:           Copyright (c) 2017 Céline Louvet
+
+extra-source-files:
+- README.md
+- ChangeLog.md
+
+# Metadata used when publishing your package
+synopsis:            Short description of your package
+# category:            Personal
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         Please see the README on Github at <https://github.com/celinelouvet/github-extract#readme>
+
+dependencies:
+- base >= 4.7 && < 5
+
+library:
+  source-dirs: src
+  exposed-modules: Lib
+  dependencies:
+    - aeson
+    - http-client
+    - servant
+    - servant-client
+    - text
+
+executables:
+  github-extract-exe:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - github-extract
+
+tests:
+  github-extract-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - github-extract
