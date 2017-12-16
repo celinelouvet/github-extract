@@ -2,36 +2,49 @@
 {-# LANGUAGE TypeOperators #-}
 
 module Lib
-    ( getUser
+    ( getOrgs
     ) where
 
-import Data.Proxy
-import Network.HTTP.Client (newManager, defaultManagerSettings)
-import Servant.API
-import Servant.Client
-import Types
+import           Data.Proxy
+import           Data.Text
+import           Network.HTTP.Client (newManager)
+import           Network.HTTP.Client.TLS    (tlsManagerSettings)
+import           Servant.API
+import           Servant.Client
+import           Types
 
+type Orgs = Header "User-Agent" UserAgent
+          :> Header "Authorization" Authorization
+          :> "user" :> "repos" :> Get '[JSON] [Organization]
 
-type CurrentUser = "api" :> "user" :> Get '[JSON] User
+getOrgsClient :: Maybe UserAgent -> Maybe Authorization -> ClientM [Organization]
+getOrgsClient = client (Proxy :: Proxy Orgs)
 
-getUserClient :: ClientM User
-getUserClient = client (Proxy :: Proxy CurrentUser)
+getOrgs' :: IO (Either ServantError [Organization])
+getOrgs' = getClientEnv >>= runClientM (getOrgsClient userAgent authorization)
 
-getUser' :: IO (Either ServantError User)
-getUser' = getClientEnv >>= runClientM getUserClient
-
-getUser :: IO ()
-getUser = getUser' >>= either onError print
-  where
-    onError error = putStrLn $ "Error: " ++ show error
+getOrgs :: IO ()
+getOrgs = getOrgs' >>= either print print
 
 getClientEnv :: IO ClientEnv
 getClientEnv = do
-  manager <- newManager defaultManagerSettings
-  let baseUrl = BaseUrl { baseUrlScheme = Http
-                        , baseUrlHost   = "localhost"
-                        , baseUrlPort   = 8080
+  manager <- newManager tlsManagerSettings
+  let baseUrl = BaseUrl { baseUrlScheme = Https
+                        , baseUrlHost   = "api.github.com"
+                        , baseUrlPort   = 443
                         , baseUrlPath   = ""
                         }
   pure $ ClientEnv manager baseUrl
+
+userAgent :: Maybe UserAgent
+userAgent = Just "Servant-Client"
+
+authorization :: Maybe Authorization
+authorization = Just "Basic whateverToken"
+
+owner :: Owner
+owner = "Sfeir"
+
+repository :: Repository
+repository = "bouffe-front"
 
