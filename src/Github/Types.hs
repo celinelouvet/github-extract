@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Types
+module Github.Types
     ( Authorization
     , UserAgent
     , Owner

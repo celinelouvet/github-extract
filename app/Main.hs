@@ -1,9 +1,15 @@
 module Main where
 
-import Lib
+import Github
 
 main :: IO ()
 main = do
   putStrLn "Get current User"
-  getOrgs
+  getIssues owner repository
+
+owner :: Owner
+owner = "Sfeir"
+
+repository :: Repository
+repository = "bouffe-front"
 
