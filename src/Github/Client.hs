@@ -11,7 +11,10 @@ import           Network.HTTP.Client (newManager)
 import           Network.HTTP.Client.TLS    (tlsManagerSettings)
 import           Servant.API
 import           Servant.Client
+import           System.Environment
+
 import           Github.Types
+import           Github.Authorization (getAuthorization)
 
 -- GET /repos/:owner/:repository/issues
 type Issues = Header "User-Agent" UserAgent :> Header "Authorization" Authorization
@@ -21,14 +24,17 @@ type Issues = Header "User-Agent" UserAgent :> Header "Authorization" Authorizat
 getIssuesClient :: Maybe UserAgent -> Maybe Authorization -> Owner -> Repository -> ClientM [Issue]
 getIssuesClient = client (Proxy :: Proxy Issues)
 
+getIssues :: Owner -> Repository -> IO ()
+getIssues owner repository = query getIssuesClient owner repository >>= either print print
+
 query :: Show a 
      => (Maybe UserAgent -> Maybe Authorization -> Owner -> Repository -> ClientM [a])
      -> Owner -> Repository
      -> IO (Either ServantError [a])
-query client owner repository = getClientEnv >>= runClientM (client userAgent authorization owner repository)
-
-getIssues ::  Owner -> Repository -> IO ()
-getIssues owner repository = query getIssuesClient owner repository >>= either print print
+query client owner repository = do
+  authorization <- getAuthorization
+  clientEnv <- getClientEnv
+  runClientM (client userAgent authorization owner repository) clientEnv
 
 getClientEnv :: IO ClientEnv
 getClientEnv = do
@@ -42,7 +48,4 @@ getClientEnv = do
 
 userAgent :: Maybe UserAgent
 userAgent = Just "Servant-Client"
-
-authorization :: Maybe Authorization
-authorization = Just "Basic whateverToken"
 

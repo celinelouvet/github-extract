@@ -27,8 +27,11 @@ library:
   exposed-modules: Github
   dependencies:
     - aeson
+    - base64-bytestring
+    - bytestring
     - http-client
     - http-client-tls
+    - http-api-data
     - servant
     - servant-client
     - text

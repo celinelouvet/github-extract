@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Github.Types
-    ( Authorization
+    ( Authorization(..)
     , UserAgent
     , Owner
     , Repository
@@ -12,11 +12,16 @@ module Github.Types
 import Data.Aeson
 import Data.Aeson.Types (typeMismatch)
 import Data.Text (Text)
+import Web.Internal.HttpApiData
 
-type Authorization = String
 type UserAgent = String
 type Owner = String
 type Repository = String
+
+newtype Authorization = Authorization String
+
+instance ToHttpApiData Authorization where
+  toQueryParam (Authorization a) = toQueryParam a
 
 data User = User
   { login :: Text
@@ -32,7 +37,7 @@ data Issue = Issue
   { number :: Int
   , state :: String
   , user :: User
-  , assignee :: User
+  , assignee :: Maybe User
   } deriving Show
 
 instance FromJSON Issue where
@@ -40,7 +45,7 @@ instance FromJSON Issue where
     Issue <$> o .: "number"
           <*> o .: "state"
           <*> o .: "user"
-          <*> o .: "assignee"
+          <*> o .:? "assignee"
   parseJSON invalid    = typeMismatch "Issue" invalid
 
 data Organization = Organization
@@ -51,4 +56,3 @@ instance FromJSON Organization where
   parseJSON (Object o) = 
     Organization <$> o .: "id"
   parseJSON invalid    = typeMismatch "Organization" invalid
-
